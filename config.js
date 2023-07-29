@@ -36,7 +36,7 @@ module.exports = {
   limiter_window: 1000 * 120,  //in ms, will reset the counts after this time
   limiter_max: 400,           //max nb of GET requests within the time window
   limiter_post_max: 100,      //max nb of POST requests within the time window
-  limiter_auth_max: 10,        //max nb of Login/Register request within the time window
+  limiter_auth_max: 30,        //max nb of Login/Register request within the time window
   limiter_proxy: false,       //Must be set to true if your server is behind a proxy, otherwise the proxy itself will be blocked
   
   ip_whitelist: ["127.0.0.1"],  //These IP are not affected by the limiter, for example you could add your game server's IP
