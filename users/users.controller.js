@@ -462,13 +462,14 @@ exports.Delete = async(req, res) => {
 
 // Add coins
 exports.AddCoins = async(req, res) => {
-    const userId = req.body.id;
-    const addedCoinsNum = req.body.addedCoinsNum;
+    console.log('add coins');
+    const userId = req.body.userId;
+    const addedCoinsNum = req.body.coins;
 
-    if(!userId || !addedIconNum)
+    if(!userId || !addedCoinsNum)
         return res.status(400).send({error: "Invalid parameters"});
 
-    if(typeof addedIconNum !== "number")
+    if(typeof addedCoinsNum !== "number")
         return res.status(400).send({error: "Invalid parameters"});
 
     const user = await UserModel.getById(userId);
@@ -478,10 +479,10 @@ exports.AddCoins = async(req, res) => {
     const newCoins = user.coins + addedCoinsNum;
     const upgradedData = {...user};
     upgradedData.coins = newCoins;
-
+    console.log(upgradedData);
     const result = UserModel.patch(userId, upgradedData);
     if(!result)
         return res.status(500).send({error: "Icon added failed"});
 
-    return res.status(200).send({result})
+    return res.status(200).send({result, newCoins})
 }
