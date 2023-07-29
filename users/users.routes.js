@@ -63,7 +63,12 @@ exports.route = function (app) {
     UsersController.ResetPassword,
   ]);
 
-
+  //Body: addedCoinsNum
+  app.post("/users/coins/add/", app.auth_limiter, [
+    AuthTool.isValidJWT,
+    AuthTool.isPermissionLevel(USER),
+    UsersController.AddCoins,
+  ])
 
   //body: email, code, password   (password is the new one)
   app.post("/users/password/reset/confirm", app.auth_limiter, [
