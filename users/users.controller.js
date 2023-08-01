@@ -484,5 +484,5 @@ exports.AddCoins = async(req, res) => {
     if(!result)
         return res.status(500).send({error: "Icon added failed"});
 
-    return res.status(200).send({result, newCoins})
+    return res.status(200).send({result, newCoins, flag: true})
 }
