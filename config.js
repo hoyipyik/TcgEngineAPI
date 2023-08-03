@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 module.exports = {
   version: "1.07", 
 
@@ -69,4 +71,14 @@ module.exports = {
   //Market
   sell_ratio: 0.8,          //Sell ratio compared to buy price
 
+  //Alipay
+  app_id: '2021004107609916',
+  key_type: 'PKCS8',
+  private_key: fs.readFileSync('private-key.pem', 'ascii'),
+  alipay_public_key: fs.readFileSync('alipay-public-key.pem', 'ascii'),
+
+
+  // cache manager
+  ttl: 60*1000*3,
+  max: 100,
 };
