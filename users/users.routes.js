@@ -64,10 +64,16 @@ exports.route = function (app) {
   ]);
 
   //Body: addedCoinsNum
-  app.post("/users/coins/add/", app.auth_limiter, [
+  app.post("/users/coins/purchase/", app.auth_limiter, [
     AuthTool.isValidJWT,
     AuthTool.isPermissionLevel(USER),
-    UsersController.AddCoins,
+    UsersController.PaymentTrigger,
+  ])
+
+  app.post("/users/coins/pay/status", app.auth_limiter, [
+    AuthTool.isValidJWT,
+    AuthTool.isPermissionLevel(USER),
+    UsersController.CoinsAddChecker,
   ])
 
   //body: email, code, password   (password is the new one)

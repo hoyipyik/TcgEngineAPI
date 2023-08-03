@@ -7,6 +7,8 @@ const Validator = require('../tools/validator.tool');
 const AuthTool = require('../authorization/auth.tool');
 const Email = require('../tools/email.tool');
 const config = require('../config');
+const { paymentHandler, coinAdder } = require('../tools/payment.tool');
+const { keyGenerator, setValue, getValue, delValue } = require('../tools/cachemanager.tool');
 
 //Register new user
 exports.RegisterUser = async (req, res, next) => {
@@ -461,8 +463,7 @@ exports.Delete = async(req, res) => {
 };
 
 // Add coins
-exports.AddCoins = async(req, res) => {
-    console.log('add coins');
+exports.PaymentTrigger = async(req, res) => {
     const userId = req.body.userId;
     const addedCoinsNum = req.body.coins;
 
@@ -476,13 +477,32 @@ exports.AddCoins = async(req, res) => {
     if(!user)
         return res.status(404).send({error: "User not found: " + userId});
 
-    const newCoins = user.coins + addedCoinsNum;
-    const upgradedData = {...user};
-    upgradedData.coins = newCoins;
-    console.log(upgradedData);
-    const result = UserModel.patch(userId, upgradedData);
-    if(!result)
-        return res.status(500).send({error: "Icon added failed"});
+    // start payment service
+    const cacheKey = keyGenerator(userId);
+    paymentHandler(user, userId, addedCoinsNum, cacheKey);
+    await setValue(cacheKey, false);
+    // const data = coinAdder(user, userId, addedCoinsNum);
+    // if(!data && !data.result)
+    //     return res.status(500).send({error: "Icon added failed"});
 
-    return res.status(200).send({result, newCoins, flag: true})
+    return res.status(200).send({checkKey: cacheKey})
+}
+
+exports.CoinsAddChecker = async (req, res) => {
+    const checkKey = req.body.checkKey;
+    const userId = req.body.userId;
+    
+    if(!userId || !checkKey){
+        return res.status(400).send({error: "Invalid parameters"});
+    }
+    const user = await UserModel.getById(userId);
+    if(!user)
+        return res.status(404).send({error: "User not found: " + userId});
+    let flag = false;
+    flag = await getValue(checkKey);
+    console.log(flag)
+    if(flag){
+        await delValue(checkKey);
+    }
+    return res.status(200).send({coins: user.coins, flag});
 }
