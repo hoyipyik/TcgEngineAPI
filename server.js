@@ -8,6 +8,14 @@ const mongoose = require("mongoose");
 
 const app = express();
 
+const cacheManager = require('cache-manager');
+const memoryCache = cacheManager.caching('memory', {
+    max: config.max,
+    ttl: config.ttl,
+});
+
+module.exports.memoryCache = memoryCache;
+
 // CONNECTION TO DATABASE
 var user = ""; //User is optional if auth not enabled
 if(config.mongo_user && config.mongo_pass)
