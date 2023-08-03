@@ -5,6 +5,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+alipay-public-key.pem
+private-key.pem
+
 # Runtime data
 pids
 *.pid
