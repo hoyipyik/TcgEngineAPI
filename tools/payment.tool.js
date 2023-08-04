@@ -2,7 +2,7 @@
 const AlipaySdk = require('alipay-sdk').default;
 const config = require('../config');
 const { patch } = require('../users/users.model');
-const { setValue } = require('./cachemanager.tool');
+const { setValue, getValue, delValue } = require('./cachemanager.tool');
 // TypeScript，可以使用 import AlipaySdk from 'alipay-sdk';
 // 普通公钥模式
 const alipaySdk = new AlipaySdk({
@@ -14,12 +14,16 @@ const alipaySdk = new AlipaySdk({
 
 exports.paymentHandler = async (user, userId, addedCoinsNum, cacheKey) => {
     const result = await alipaySdk.exec('alipay.open.public.qrcode.create');
-    console.log(result)
-    
-    console.log('money gotten')
-    // console.log(new Date().getSeconds())
-    await sleep(5);
-    // console.log(new Date().getSeconds())
+    // console.log(result)
+    await setValue(cacheKey + "_fakepayment", false);
+    while(true){
+        if(await getValue(cacheKey + "_fakepayment")){
+            await delValue(cacheKey + "_fakepayment");
+            console.log('money gotten');
+            break;
+        }
+        await sleep(0.5);
+    }
     await coinAdder(user, userId, addedCoinsNum)
     await setValue(cacheKey, true)
 }
