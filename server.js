@@ -115,6 +115,8 @@ MarketRouter.route(app);
 const ActivityRouter = require("./activity/activity.routes");
 ActivityRouter.route(app);
 
+const FakePaymentRouter = require("./fakePayment/fake.payment.routes.js");
+FakePaymentRouter.route(app);
 
 //HTTP
 if(config.allow_http){
