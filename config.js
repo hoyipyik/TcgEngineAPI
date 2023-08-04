@@ -74,8 +74,10 @@ module.exports = {
   //Alipay
   app_id: '2021004107609916',
   key_type: 'PKCS8',
-  private_key: fs.readFileSync('private-key.pem', 'ascii'),
-  alipay_public_key: fs.readFileSync('alipay-public-key.pem', 'ascii'),
+  private_key: "hi", 
+  // fs.readFileSync('private-key.pem', 'ascii'),
+  alipay_public_key: "hi",
+  // fs.readFileSync('alipay-public-key.pem', 'ascii'),
 
 
   // cache manager

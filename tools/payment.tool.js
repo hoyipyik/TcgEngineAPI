@@ -13,7 +13,7 @@ const alipaySdk = new AlipaySdk({
 });
 
 exports.paymentHandler = async (user, userId, addedCoinsNum, cacheKey) => {
-    const result = await alipaySdk.exec('alipay.open.public.qrcode.create');
+    // const result = await alipaySdk.exec('alipay.open.public.qrcode.create');
     // console.log(result)
     await setValue(cacheKey + "_fakepayment", false);
     while(true){
