@@ -204,4 +204,22 @@ exports.route = function (app) {
   app.get("/online", [
     UsersController.GetOnline
   ]);
+
+  // USER - 邮箱
+
+  //发放奖励
+  //Body: title, description, rewards[], filter
+  app.post("/users/mailbox/addReward", app.post_limiter, [
+    AuthTool.isValidJWT,
+    AuthTool.isPermissionLevel(ADMIN),
+    UsersController.AddRewardToMailbox,
+  ])
+
+  //领取奖励
+  //Body: reward
+  app.post("/users/mailbox/getReward", app.post_limiter, [
+    AuthTool.isValidJWT,
+    AuthTool.isPermissionLevel(USER),
+    UsersController.GetRewardFromMailbox,
+  ])
 };

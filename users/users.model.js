@@ -3,39 +3,41 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
 
-  username: {type: String, required: true, index: true, unique: true, default: ""},
-  email: {type: String, required: true, index: true, default: ""},
-  password: {type: String, required: true, default: ""},
-  
-  permission_level: {type: Number, required: true, default: 1},  //Admin or not?
-  validation_level: {type: Number, required: true, default: 0},  //Validation level increases by confirming email
-  account_create_time: {type: Date, default: null},
-  last_login_time: {type: Date, default: null},
+    username: { type: String, required: true, index: true, unique: true, default: "" },
+    email: { type: String, required: true, index: true, default: "" },
+    password: { type: String, required: true, default: "" },
 
-  refresh_key: {type: String, default: ""},           //Used for refreshing the current login JWT token
-  proof_key: {type: String, default: ""},             //Used to proof to a another server who you are
-  email_confirm_key: {type: String, default: ""},      //Used to confirm email
-  password_recovery_key: {type: String, default: ""},  //Used for password recovery   
-  
-  avatar: {type: String, default: ""},
-  cardback: {type: String, default: ""},
-  coins: {type: Number, default: 0},
-  xp: {type: Number, default: 0},
-  elo: {type: Number, default: 1000},
+    permission_level: { type: Number, required: true, default: 1 },  //Admin or not?
+    validation_level: { type: Number, required: true, default: 0 },  //Validation level increases by confirming email
+    account_create_time: { type: Date, default: null },
+    last_login_time: { type: Date, default: null },
 
-  matches: {type: Number, default: 0},
-  victories: {type: Number, default: 0},
-  defeats: {type: Number, default: 0},
+    refresh_key: { type: String, default: "" },           //Used for refreshing the current login JWT token
+    proof_key: { type: String, default: "" },             //Used to proof to a another server who you are
+    email_confirm_key: { type: String, default: "" },      //Used to confirm email
+    password_recovery_key: { type: String, default: "" },  //Used for password recovery   
 
-  friends: {type: Array, default: []},
-  friends_requests: {type: Array, default: []},
-  
-  cards: [{ tid: String, quantity: Number, _id: false }],
-  packs: [{ tid: String, quantity: Number, _id: false }],
-  decks: [{ type: Object, _id: false }],
-  avatars: [{type: String}],
-  cardbacks: [{type: String}],
-  rewards: [{type: String}],
+    avatar: { type: String, default: "" },
+    cardback: { type: String, default: "" },
+    coins: { type: Number, default: 0 },
+    xp: { type: Number, default: 0 },
+    elo: { type: Number, default: 1000 },
+
+    mailboxContent: [{ default: undefined, mailTitie: String, mailDescription: String, reward: { type: String, titie: String } }],
+
+    matches: { type: Number, default: 0 },
+    victories: { type: Number, default: 0 },
+    defeats: { type: Number, default: 0 },
+
+    friends: { type: Array, default: [] },
+    friends_requests: { type: Array, default: [] },
+
+    cards: [{ tid: String, quantity: Number, _id: false }],
+    packs: [{ tid: String, quantity: Number, _id: false }],
+    decks: [{ type: Object, _id: false }],
+    avatars: [{ type: String }],
+    cardbacks: [{ type: String }],
+    rewards: [{ type: String, titie: String }],
 
 });
 
@@ -43,7 +45,7 @@ userSchema.virtual('id').get(function () {
     return this._id.toHexString();
 });
 
-userSchema.methods.toObj = function() {
+userSchema.methods.toObj = function () {
     var user = this.toObject();
     user.id = user._id;
     delete user.__v;
@@ -52,7 +54,7 @@ userSchema.methods.toObj = function() {
 };
 
 //Hide sensitive information
-userSchema.methods.deleteSecrets = function(){
+userSchema.methods.deleteSecrets = function () {
     var user = this.toObject();
     user.id = user._id;
     delete user.__v;
@@ -60,13 +62,13 @@ userSchema.methods.deleteSecrets = function(){
     delete user.password;
     delete user.refresh_key;
     delete user.proof_key;
-    delete user.email_confirm_key; 
+    delete user.email_confirm_key;
     delete user.password_recovery_key;
     return user;
 };
 
 //Hide non-admin information, for example only admins can read user emails
-userSchema.methods.deleteAdminOnly = function(){
+userSchema.methods.deleteAdminOnly = function () {
     var user = this.toObject();
     delete user.__v;
     delete user._id;
@@ -76,7 +78,7 @@ userSchema.methods.deleteAdminOnly = function(){
     delete user.password;
     delete user.refresh_key;
     delete user.proof_key;
-    delete user.email_confirm_key; 
+    delete user.email_confirm_key;
     delete user.password_recovery_key;
     return user;
 };
@@ -86,108 +88,117 @@ exports.UserModel = User;
 
 // USER DATA MODELS ------------------------------------------------
 
-exports.getById = async(id) => {
+exports.getById = async (id) => {
 
-    try{
-        var user = await  User.findOne({_id: id});
+    try {
+        var user = await User.findOne({ _id: id });
         return user;
     }
-    catch{
+    catch {
         return null;
     }
 };
 
-exports.getByEmail = async(email) => {
+exports.getByEmail = async (email) => {
 
-    try{
+    try {
         var regex = new RegExp(["^", email, "$"].join(""), "i");
-        var user = await User.findOne({email: regex});
+        var user = await User.findOne({ email: regex });
         return user;
     }
-    catch{
+    catch {
         return null;
     }
 };
 
-exports.getByUsername = async(username) => {
+exports.getByUsername = async (username) => {
 
-    try{
+    try {
         var regex = new RegExp(["^", username, "$"].join(""), "i");
-        var user = await User.findOne({username: regex});
+        var user = await User.findOne({ username: regex });
         return user;
     }
-    catch{
+    catch {
         return null;
     }
 };
 
-exports.create = async(userData) => {
+exports.getUsersByCustomCondition = async (condition) => {
+    try {
+        var user = await User.find(condition);
+        return user;
+    }
+    catch {
+        return null;
+    }
+}
+
+exports.create = async (userData) => {
     const user = new User(userData);
     return await user.save();
 };
 
-exports.list = async() => {
+exports.list = async () => {
 
-    try{
+    try {
         var users = await User.find()
         users = users || [];
         return users;
     }
-    catch{
+    catch {
         return [];
     }
 };
 
-exports.listLimit = async(perPage, page) => {
+exports.listLimit = async (perPage, page) => {
 
-    try{
+    try {
         var users = await User.find().limit(perPage).skip(perPage * page)
         users = users || [];
         return users;
     }
-    catch{
+    catch {
         return [];
     }
 };
 
 //List users contained in the username list
-exports.listByUsername = async(username_list) => {
+exports.listByUsername = async (username_list) => {
 
-    try{
+    try {
         var users = await User.find({ username: { $in: username_list } });
         return users || [];
     }
-    catch{
+    catch {
         return [];
     }
 };
 
 //Saves an already loaded User, by providing a string list of changed keys
-exports.save = async(user, modified_list) => {
+exports.save = async (user, modified_list) => {
 
-    try{
-        if(!user) return null;
+    try {
+        if (!user) return null;
 
-        if(modified_list)
-        {
-            for (let i=0; i<modified_list.length; i++) {
+        if (modified_list) {
+            for (let i = 0; i < modified_list.length; i++) {
                 user.markModified(modified_list[i]);
             }
         }
 
         return await user.save();
     }
-    catch(e){
+    catch (e) {
         console.log(e);
         return null;
     }
 };
 
 //Update an already loaded user, by providing an object containing new values
-exports.update = async(user, userData) => {
+exports.update = async (user, userData) => {
 
-    try{
-        if(!user) return null;
+    try {
+        if (!user) return null;
 
         for (let i in userData) {
             user[i] = userData[i];
@@ -197,18 +208,18 @@ exports.update = async(user, userData) => {
         var updatedUser = await user.save();
         return updatedUser;
     }
-    catch(e){
+    catch (e) {
         console.log(e);
         return null;
     }
 };
 
 //Load, and then update a user, based on userId and an object containing new values
-exports.patch = async(userId, userData) => {
+exports.patch = async (userId, userData) => {
 
-    try{
-        var user = await User.findById ({_id: userId});
-        if(!user) return null;
+    try {
+        var user = await User.findById({ _id: userId });
+        if (!user) return null;
 
         for (let i in userData) {
             user[i] = userData[i];
@@ -217,30 +228,29 @@ exports.patch = async(userId, userData) => {
         var updatedUser = await user.save();
         return updatedUser;
     }
-    catch(e){
+    catch (e) {
         console.log(e);
         return null;
     }
 };
 
-exports.remove = async(userId) => {
+exports.remove = async (userId) => {
 
-    try{
-        var result = await User.deleteOne({_id: userId});
+    try {
+        var result = await User.deleteOne({ _id: userId });
         return result && result.deletedCount > 0;
     }
-    catch{
+    catch {
         return false;
     }
 };
 
-exports.count = async() =>
-{
-    try{
+exports.count = async () => {
+    try {
         var count = await User.countDocuments({});
         return count;
     }
-    catch{
+    catch {
         return 0;
     }
 }

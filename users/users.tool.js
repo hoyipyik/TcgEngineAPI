@@ -7,20 +7,19 @@ const Validator = require('../tools/validator.tool');
 
 const UserTool = {};
 
-UserTool.generateID = function(length, easyRead) {
-    var result           = '';
-    var characters       = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    if(easyRead)
-        characters  = 'abcdefghijklmnpqrstuvwxyz123456789'; //Remove confusing characters like 0 and O
+UserTool.generateID = function (length, easyRead) {
+    var result = '';
+    var characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    if (easyRead)
+        characters = 'abcdefghijklmnpqrstuvwxyz123456789'; //Remove confusing characters like 0 and O
     var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
- }
+}
 
-UserTool.setUserPassword = (user, password) =>
-{
+UserTool.setUserPassword = (user, password) => {
     let newPass = AuthTool.hashPassword(password);
     user.password = newPass;
     user.password_recovery_key = ""; //After changing password, disable recovery until changed again
@@ -29,16 +28,15 @@ UserTool.setUserPassword = (user, password) =>
 
 //--------- Rewards -----------
 
-UserTool.GainUserReward = async(user, reward) =>
-{
+UserTool.GainUserReward = async (user, reward) => {
     //Add reward to user
     user.coins += reward.coins || 0;
     user.xp += reward.xp || 0;
-    
-    if(!user.rewards.includes(reward.tid))
+
+    if (!user.rewards.includes(reward.tid))
         user.rewards.push(reward.tid);
 
-    if(reward.group && !user.rewards.includes(reward.group))
+    if (reward.group && !user.rewards.includes(reward.group))
         user.rewards.push(reward.group);
 
     UserTool.addAvatars(user, reward.avatars);
@@ -54,14 +52,13 @@ UserTool.GainUserReward = async(user, reward) =>
 //--------- Cards, Packs and Decks --------
 
 //newCards is just an array of string (card tid)
-UserTool.addCards = async(user, newCards) =>
-{
+UserTool.addCards = async (user, newCards) => {
     var cards = user.cards;
-    
-    if(!Array.isArray(cards) || !Array.isArray(newCards))
+
+    if (!Array.isArray(cards) || !Array.isArray(newCards))
         return false; //Wrong params
 
-    if(newCards.length == 0)
+    if (newCards.length == 0)
         return true; //No card to add, succeeded
 
     //Count quantities
@@ -96,10 +93,9 @@ UserTool.addCards = async(user, newCards) =>
     }
 
     //Remove empty
-    for(var i=cards.length-1; i>=0; i--)
-    {
+    for (var i = cards.length - 1; i >= 0; i--) {
         var card = cards[i];
-        if(!card.quantity || card.quantity <= 0)
+        if (!card.quantity || card.quantity <= 0)
             cards.splice(i, 1);
     }
 
@@ -112,12 +108,12 @@ UserTool.addPacks = async (user, newPacks) => {
 
     var packs = user.packs;
 
-    if(!Array.isArray(packs) || !Array.isArray(newPacks))
+    if (!Array.isArray(packs) || !Array.isArray(newPacks))
         return false; //Wrong params
 
-    if(newPacks.length == 0)
+    if (newPacks.length == 0)
         return true; //No pack to add, succeeded
-  
+
     //Count quantities
     let prevTotal = Validator.countQuantity(packs);
     let addTotal = Validator.countQuantity(newPacks);
@@ -150,10 +146,9 @@ UserTool.addPacks = async (user, newPacks) => {
     }
 
     //Remove empty
-    for(var i=packs.length-1; i>=0; i--)
-    {
+    for (var i = packs.length - 1; i >= 0; i--) {
         var pack = packs[i];
-        if(!pack.quantity || pack.quantity <= 0)
+        if (!pack.quantity || pack.quantity <= 0)
             packs.splice(i, 1);
     }
 
@@ -163,18 +158,17 @@ UserTool.addPacks = async (user, newPacks) => {
 };
 
 //newDecks is just an array of string (deck tid)
-UserTool.addDecks = async(user, newDecks) =>
-{
+UserTool.addDecks = async (user, newDecks) => {
     var decks = user.decks;
 
-    if(!Array.isArray(decks) || !Array.isArray(newDecks))
+    if (!Array.isArray(decks) || !Array.isArray(newDecks))
         return false; //Wrong params
 
-    if(newDecks.length == 0)
+    if (newDecks.length == 0)
         return true; //No deck to add, succeeded
 
     var ndecks = await DeckModel.getList(newDecks);
-    if(!ndecks)
+    if (!ndecks)
         return false; //Decks not found
 
     //Loop on cards to add
@@ -182,7 +176,7 @@ UserTool.addDecks = async(user, newDecks) =>
 
         var deckAdd = ndecks[c];
         var valid_c = await UserTool.addCards(user, deckAdd.cards);
-        if(!valid_c)
+        if (!valid_c)
             return false; //Failed adding cards
 
         decks.push({
@@ -194,67 +188,59 @@ UserTool.addDecks = async(user, newDecks) =>
 
     return true;
 };
-  
-UserTool.addAvatars = (user, avatars) =>
-{
-    if(!avatars || !Array.isArray(avatars))
+
+UserTool.addAvatars = (user, avatars) => {
+    if (!avatars || !Array.isArray(avatars))
         return;
 
     for (let i = 0; i < avatars.length; i++) {
         var avatar = avatars[i];
-        if(avatar && typeof avatar === "string" && !user.avatars.includes(avatar))
+        if (avatar && typeof avatar === "string" && !user.avatars.includes(avatar))
             user.avatars.push(avatar);
     }
 };
 
-UserTool.addCardbacks = (user, cardbacks) =>
-{
-    if(!cardbacks || !Array.isArray(cardbacks))
+UserTool.addCardbacks = (user, cardbacks) => {
+    if (!cardbacks || !Array.isArray(cardbacks))
         return;
 
     for (let i = 0; i < cardbacks.length; i++) {
         var cardback = cardbacks[i];
-        if(cardback && typeof cardback === "string" && !user.cardbacks.includes(cardback))
+        if (cardback && typeof cardback === "string" && !user.cardbacks.includes(cardback))
             user.cardbacks.push(cardback);
     }
 };
 
-UserTool.hasCard = (user, card_tid, quantity) =>
-{
+UserTool.hasCard = (user, card_tid, quantity) => {
     for (let c = 0; c < user.cards.length; c++) {
         var acard = user.cards[c];
         var aquantity = acard.quantity || 1;
-        if(acard.tid == card_tid && aquantity >= quantity)
+        if (acard.tid == card_tid && aquantity >= quantity)
             return true;
     }
     return false;
 };
 
-UserTool.hasPack = (user, card_tid, quantity) =>
-{
+UserTool.hasPack = (user, card_tid, quantity) => {
     for (let c = 0; c < user.packs.length; c++) {
         var apack = user.packs[c];
         var aquantity = apack.quantity || 1;
-        if(apack.tid == card_tid && aquantity >= quantity)
+        if (apack.tid == card_tid && aquantity >= quantity)
             return true;
     }
     return false;
 };
 
-UserTool.getDeck = (user, deck_tid) =>
-{
+UserTool.getDeck = (user, deck_tid) => {
     var deck = {};
-    if(user && user.decks)
-    {
-        for(var i=0; i<user.decks.length; i++)
-        {
+    if (user && user.decks) {
+        for (var i = 0; i < user.decks.length; i++) {
             var adeck = user.decks[i];
-            if(adeck.tid == deck_tid)
-            {
+            if (adeck.tid == deck_tid) {
                 deck = adeck;
             }
         }
-    }  
+    }
     return deck;
 };
 
@@ -262,7 +248,7 @@ UserTool.getDeck = (user, deck_tid) =>
 
 UserTool.sendEmailConfirmKey = (user, email, email_confirm_key) => {
 
-    if(!email || !user) return;
+    if (!email || !user) return;
 
     var subject = config.api_title + " - Email Confirmation";
     var http = config.allow_https ? "https://" : "http://";
@@ -273,7 +259,7 @@ UserTool.sendEmailConfirmKey = (user, email, email_confirm_key) => {
     text += "To confirm your email, click here: <br><a href='" + confirm_link + "'>" + confirm_link + "</a><br><br>";
     text += "Thank you and see you soon!<br>";
 
-    Email.SendEmail(email, subject, text, function(result){
+    Email.SendEmail(email, subject, text, function (result) {
         console.log("Sent email to: " + email + ": " + result);
     });
 
@@ -281,7 +267,7 @@ UserTool.sendEmailConfirmKey = (user, email, email_confirm_key) => {
 
 UserTool.sendEmailChangeEmail = (user, email, new_email) => {
 
-    if(!email || !user) return;
+    if (!email || !user) return;
 
     var subject = config.api_title + " - Email Changed";
 
@@ -289,15 +275,15 @@ UserTool.sendEmailChangeEmail = (user, email, new_email) => {
     text += "Your email was succesfully changed to: " + new_email + "<br>";
     text += "If you believe this is an error, please contact support immediately.<br><br>"
     text += "Thank you and see you soon!<br>";
-    
-    Email.SendEmail(email, subject, text, function(result){
+
+    Email.SendEmail(email, subject, text, function (result) {
         console.log("Sent email to: " + email + ": " + result);
     });
 };
 
 UserTool.sendEmailChangePassword = (user, email) => {
 
-    if(!email || !user) return;
+    if (!email || !user) return;
 
     var subject = config.api_title + " - Password Changed";
 
@@ -306,7 +292,7 @@ UserTool.sendEmailChangePassword = (user, email) => {
     text += "If you believe this is an error, please contact support immediately.<br><br>"
     text += "Thank you and see you soon!<br>";
 
-    Email.SendEmail(email, subject, text, function(result){
+    Email.SendEmail(email, subject, text, function (result) {
         console.log("Sent email to: " + email + ": " + result);
     });
 
@@ -314,7 +300,7 @@ UserTool.sendEmailChangePassword = (user, email) => {
 
 UserTool.sendEmailPasswordRecovery = (user, email) => {
 
-    if(!email || !user) return;
+    if (!email || !user) return;
 
     var subject = config.api_title + " - Password Recovery";
 
@@ -322,10 +308,28 @@ UserTool.sendEmailPasswordRecovery = (user, email) => {
     text += "Here is your password recovery code: " + user.password_recovery_key.toUpperCase() + "<br><br>";
     text += "Thank you and see you soon!<br>";
 
-    Email.SendEmail(email, subject, text, function(result){
+    Email.SendEmail(email, subject, text, function (result) {
         console.log("Sent email to: " + email + ": " + result);
     });
 };
 
+//--------- 邮件系统 --------
+
+UserTool.addRewardToMailbox = async (user, reward, mailTitle = "", mailDescription = "") => {
+    user.mailboxContent.push({
+        mailTitle: mailTitle,
+        mailDescription: mailDescription,
+        reward: reward
+    });
+};
+
+UserTool.getRewardsFromBox = async (user, mailRewardID) => {
+    let index = user.mailboxContent.findIndex((m) => { m._id == mailRewardID });
+    if (index != -1) {
+        this.GainUserReward(user, user.mailboxContent[index].reward);
+        return user.mailboxContent.splice(index, 1);
+    }
+    return false;
+}
 
 module.exports = UserTool;
