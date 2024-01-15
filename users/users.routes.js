@@ -216,8 +216,8 @@ exports.route = function (app) {
   ])
 
   //领取奖励
-  //Body: reward
-  app.post("/users/mailbox/getReward", app.post_limiter, [
+  //Body: rewardID
+  app.post("/users/mailbox/getReward:userId", app.post_limiter, [
     AuthTool.isValidJWT,
     AuthTool.isPermissionLevel(USER),
     UsersController.GetRewardFromMailbox,

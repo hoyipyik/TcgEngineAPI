@@ -4,6 +4,8 @@ const Email = require('../tools/email.tool');
 const AuthTool = require('../authorization/auth.tool');
 const DeckModel = require('../decks/decks.model');
 const Validator = require('../tools/validator.tool');
+const { Console } = require('console');
+const RewardModel = require('../rewards/rewards.model');
 
 const UserTool = {};
 
@@ -30,6 +32,8 @@ UserTool.setUserPassword = (user, password) => {
 
 UserTool.GainUserReward = async (user, reward) => {
     //Add reward to user
+    console.log(reward);
+
     user.coins += reward.coins || 0;
     user.xp += reward.xp || 0;
 
@@ -315,21 +319,40 @@ UserTool.sendEmailPasswordRecovery = (user, email) => {
 
 //--------- 邮件系统 --------
 
-UserTool.addRewardToMailbox = async (user, reward, mailTitle = "", mailDescription = "") => {
-    user.mailboxContent.push({
-        mailTitle: mailTitle,
-        mailDescription: mailDescription,
-        reward: reward
-    });
+UserTool.addRewardToMailbox = async (user, rewardID, mailTitle = "", mailDescription = "") => {
+    try {
+        user.mailboxContent.push({
+            tid: new Date().toISOString(),
+            mailTitle: mailTitle,
+            mailDescription: mailDescription,
+            reward: rewardID
+        });
+        return true;
+    } catch (e) {
+        console.log(e);
+        return false;
+    }
 };
 
 UserTool.getRewardsFromBox = async (user, mailRewardID) => {
-    let index = user.mailboxContent.findIndex((m) => { m._id == mailRewardID });
-    if (index != -1) {
-        this.GainUserReward(user, user.mailboxContent[index].reward);
-        return user.mailboxContent.splice(index, 1);
+    try {
+        console.log(mailRewardID);
+        let index = user.mailboxContent.findIndex((item) => { return item.tid == mailRewardID });
+        if (index == -1) {
+            return false;
+        }
+        let applyRes = await UserTool.GainUserReward(user, await RewardModel.get(user.mailboxContent[index].reward));
+        if (!applyRes) {
+            return false;
+        }
+
+        return user.mailboxContent.splice(index, 1).length > 0;
+
+    } catch (e) {
+        console.log(e);
+        return false;
     }
-    return false;
+
 }
 
 module.exports = UserTool;

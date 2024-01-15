@@ -503,15 +503,9 @@ exports.CoinsAddChecker = async (req, res) => {
 };
 
 //添加奖励到邮箱
-//Body: title, description, rewards[], filter
+//Body: title, description, reward, filter
 exports.AddRewardToMailbox = async (req, res) => {
     var rewardId = req.body.reward;
-
-    if (!userId || !rewardId)
-        return res.status(400).send({ error: "Invalid parameters" });
-
-    if (typeof rewardId !== "string")
-        return res.status(400).send({ error: "Invalid parameters" });
 
     var users = await UserModel.getUsersByCustomCondition(req.body.filter);
 
@@ -522,49 +516,57 @@ exports.AddRewardToMailbox = async (req, res) => {
     if (reward.repeat && req.jwt.permission_level < config.permissions.SERVER)
         return res.status(404).send({ error: "Insufficient Permission" });
 
-    users.forEach(user => {
-        if (!reward.repeat && user.mailboxContent.includes(rewardId))
-            return res.status(403).send({ error: "Reward already claimed: " + rewardId });
+    if (users.length == 0) {
+        return res.status(403).send({ error: "无匹配的用户" })
+    }
 
-        if (!reward.repeat && reward.group && user.mailboxContent.includes(reward.group))
-            return res.status(403).send({ error: "Reward group already claimed: " + reward.group });
+    try {
+        let failedUser = [];
+        users.forEach(async user => {
+            if (!UserTool.addRewardToMailbox(user, rewardId, req.body.title, req.body.description)) {
+                failedUser.push(user._id);
+                return;
+            }
 
-        UserTool.addRewardToMailbox(user, reward, req.body.title, req.body.description);
-    });
+            //更新数据库
+            var updatedUser = await UserModel.save(user, ["mailboxContent"]);
+            if (!updatedUser) {
+                failedUser.push(user._id);
+            }
+        });
+        return res.status(200).send({ failedList: failedUser });
+    } catch (e) {
+        return res.status(403).send(e);
+    }
+
+
 };
 
 //从邮箱中取出奖励
 exports.GetRewardFromMailbox = async (req, res) => {
     var userId = req.params.userId;
-    var rewardId = req.body.reward;
-
-    if (!userId || !rewardId)
-        return res.status(400).send({ error: "Invalid parameters" });
-
-    if (typeof rewardId !== "string")
-        return res.status(400).send({ error: "Invalid parameters" });
+    var rewardID = req.body.rewardID;
 
     var user = await UserModel.getById(userId);
 
-    var reward = await RewardModel.get(rewardId);
-    if (!reward)
-        return res.status(404).send({ error: "Reward not found: " + rewardId });
+    if (user == null) {
+        return res.status(403).send("未找到用户");
+    }
 
-    if (reward.repeat && req.jwt.permission_level < config.permissions.SERVER)
-        return res.status(404).send({ error: "Insufficient Permission" });
+    let valid = await UserTool.getRewardsFromBox(user, rewardID);
 
-    let valid = UserTool.getRewardsFromBox(user, reward);
-    
     //Check if succeed
     if (!valid)
-        return res.status(500).send({ error: "Failed adding reward: " + rewardId + " for " + userId });
+        return res.status(500).send({ error: "取出失败: " + rewardID + " for " + userId });
 
     //Update the user
-    var updatedUser = await UserModel.save(user, ["rewards", "xp", "coins", "cards", "decks", "avatars", "cardbacks"]);
-    if (!updatedUser) return res.status(500).send({ error: "Error updating user: " + userId });
+    var updatedUser = await UserModel.save(user, ["rewards", "xp", "coins", "cards", "decks", "avatars", "cardbacks", "mailboxContent"]);
+    if (!updatedUser) {
+        return res.status(500).send({ error: "Error updating user: " + userId });
+    }
 
     //Log activity
-    const activityData = { reward: reward, user: user.username };
+    const activityData = { reward: rewardID, user: user.username };
     const act = await Activity.LogActivity("reward_gain", req.jwt.username, activityData);
     if (!act) return res.status(500).send({ error: "Failed to log activity!!" });
 
