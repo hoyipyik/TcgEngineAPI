@@ -207,6 +207,12 @@ exports.route = function (app) {
 
   // USER - 邮箱
 
+  app.get("/users/mailbox/list:userId", [
+    AuthTool.isValidJWT,
+    AuthTool.isPermissionLevel(USER),
+    UsersController.ListRewardsInMailbox
+  ])
+
   //发放奖励
   //Body: title, description, rewards[], filter
   app.post("/users/mailbox/addReward", app.post_limiter, [

@@ -502,6 +502,15 @@ exports.CoinsAddChecker = async (req, res) => {
     return res.status(200).send({ coins: user.coins, flag });
 };
 
+//查看邮箱内容
+exports.ListRewardsInMailbox = async (req, res) => {
+    let user = await UserModel.getById(req.params.userId);
+    if(user == null){
+        return res.status(403).send("未找到用户");
+    }
+    return res.status(200).send(user.mailboxContent);
+}
+
 //添加奖励到邮箱
 //Body: title, description, reward, filter
 exports.AddRewardToMailbox = async (req, res) => {
