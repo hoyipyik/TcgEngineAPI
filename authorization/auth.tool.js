@@ -110,7 +110,7 @@ AuthTool.isRefreshValid = async(req, res, next) => {
     } catch (err) {
         return res.status(403).send({error: "无效令牌"});
     }
-
+    // hihi
     req.login = req.jwt;
     delete req.login.iat; // 删除先前的iat以生成新的
     return next();
