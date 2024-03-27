@@ -87,10 +87,10 @@ app.get('/test', (req, res) => {
 //Routing
 const AuthorizationRouter = require('./authorization/auth.routes');
 AuthorizationRouter.route(app);
-
+// TODO: user
 const UsersRouter = require('./users/users.routes');
 UsersRouter.route(app);
-
+// TODO: card
 const CardsRouter = require('./cards/cards.routes');
 CardsRouter.route(app);
 
@@ -114,7 +114,7 @@ MarketRouter.route(app);
 
 const ActivityRouter = require("./activity/activity.routes");
 ActivityRouter.route(app);
-
+// payment
 const FakePaymentRouter = require("./fakePayment/fake.payment.routes.js");
 FakePaymentRouter.route(app);
 
